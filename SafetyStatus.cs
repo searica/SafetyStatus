@@ -19,10 +19,6 @@ namespace SafetyStatus
         public const string PluginGUID = $"{Author}.Valheim.{PluginName}";
         public const string PluginVersion = "1.0.0";
 
-        // Use this class to add your own localization to the game
-        // https://valheim-modding.github.io/Jotunn/tutorials/localization.html
-        //public static CustomLocalization Localization = LocalizationManager.Instance.GetLocalization();
-
         internal static CustomStatusEffect SafeEffect;
         internal const string SafeEffectName = "SafeStatusEffect";
         internal static int SafeEffectHash;
@@ -141,14 +137,11 @@ namespace SafetyStatus
             {
                 var inPlayerBase = EffectArea.IsPointInsideArea(__instance.transform.position, EffectArea.Type.PlayerBase, 1f);
                 var hasSafeEffect = __instance.m_seman.HaveStatusEffect(SafeEffectName);
+
                 if (hasSafeEffect && !inPlayerBase)
                 {
                     __instance.m_seman.RemoveStatusEffect(SafeEffectHash);
                 }
-                //else if (inPlayerBase && !hasSafeEffect)
-                //{
-                //    __instance.m_seman.AddStatusEffect(SafeEffectHash);
-                //}
             }
         }
     }
