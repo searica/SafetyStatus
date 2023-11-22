@@ -12,7 +12,7 @@ namespace SafetyStatus
 {
     [BepInPlugin(PluginGUID, PluginName, PluginVersion)]
     [BepInDependency(Jotunn.Main.ModGuid, Jotunn.Main.Version)]
-    internal class SafetyStatus : BaseUnityPlugin
+    internal sealed class SafetyStatus : BaseUnityPlugin
     {
         internal const string Author = "Searica";
         public const string PluginName = "SafetyStatus";

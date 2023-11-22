@@ -12,7 +12,7 @@ using UnityEngine.Rendering;
 
 namespace SafetyStatus.Configs
 {
-    internal class ConfigManager
+    internal static class ConfigManager
     {
         private static string ConfigFileName;
         private static string ConfigFileFullPath;
@@ -20,8 +20,6 @@ namespace SafetyStatus.Configs
         private static ConfigFile configFile;
         private static BaseUnityPlugin ConfigurationManager;
         private const string ConfigManagerGUID = "com.bepis.bepinex.configurationmanager";
-
-        private static readonly AcceptableValueList<bool> AcceptableBoolValuesList = new(new bool[] { false, true });
 
         private const string MainSection = "Global";
 
