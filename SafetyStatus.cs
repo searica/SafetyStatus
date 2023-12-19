@@ -5,15 +5,14 @@ using BepInEx.Logging;
 using HarmonyLib;
 using Jotunn.Entities;
 using Jotunn.Managers;
+using SafetyStatus.Visualization;
 using System.Reflection;
 using UnityEngine;
 
-namespace SafetyStatus
-{
+namespace SafetyStatus {
     [BepInPlugin(PluginGUID, PluginName, PluginVersion)]
     [BepInDependency(Jotunn.Main.ModGuid, Jotunn.Main.Version)]
-    internal sealed class SafetyStatus : BaseUnityPlugin
-    {
+    internal sealed class SafetyStatus : BaseUnityPlugin {
         internal const string Author = "Searica";
         public const string PluginName = "SafetyStatus";
         public const string PluginGUID = $"{Author}.Valheim.{PluginName}";
@@ -23,8 +22,9 @@ namespace SafetyStatus
         internal const string SafeEffectName = "SafeStatusEffect";
         internal static int SafeEffectHash;
 
-        public void Awake()
-        {
+        internal static bool IsSafetyCircleActive = false;
+
+        public void Awake() {
             Log.Init(Logger);
 
             Harmony.CreateAndPatchAll(Assembly.GetExecutingAssembly(), harmonyInstanceId: PluginGUID);
@@ -37,10 +37,8 @@ namespace SafetyStatus
         /// <summary>
         ///     Create and add the Safe status effect
         /// </summary>
-        private void AddStatusEffect()
-        {
-            try
-            {
+        private void AddStatusEffect() {
+            try {
                 StatusEffect statusEffect = ScriptableObject.CreateInstance<StatusEffect>();
                 statusEffect.name = SafeEffectName;
                 statusEffect.m_name = "Safe";
@@ -53,34 +51,33 @@ namespace SafetyStatus
                 ItemManager.Instance.AddStatusEffect(SafeEffect);
                 SafeEffectHash = SafeEffect.StatusEffect.NameHash();
             }
-            finally
-            {
+            finally {
                 PrefabManager.OnVanillaPrefabsAvailable -= AddStatusEffect;
             }
         }
 
+
+        private void Update() {
+            if (Input.GetKeyDown(KeyCode.G)) {
+                IsSafetyCircleActive = !IsSafetyCircleActive;
+            }
+        }
+
         [HarmonyPatch(typeof(EffectArea))]
-        internal static class EffectAreaPatch
-        {
+        internal static class EffectAreaPatch {
             /// <summary>
             ///     Catch things that are not pieces but have a PlayerBase effect
             /// </summary>
             /// <param name="__instance"></param>
             [HarmonyPostfix]
             [HarmonyPatch(nameof(EffectArea.Awake))]
-            private static void AwakePostfix(EffectArea __instance)
-            {
-                if (__instance.m_type == EffectArea.Type.PlayerBase)
-                {
-                    __instance.m_statusEffect = SafeEffectName;
-                    __instance.m_statusEffectHash = SafeEffectHash;
-                }
+            private static void AwakePostfix(EffectArea __instance) {
+                AddSafetyEffects(__instance);
             }
         }
 
         [HarmonyPatch(typeof(Piece))]
-        internal static class PiecePatch
-        {
+        internal static class PiecePatch {
             /// <summary>
             ///     Catch pieces that mods like MVBP add a PlayerBase effect to
             /// </summary>
@@ -88,9 +85,8 @@ namespace SafetyStatus
             [HarmonyPostfix]
             [HarmonyPriority(Priority.Low)]
             [HarmonyPatch(nameof(Piece.Awake))]
-            private static void AwakePostfix(Piece __instance)
-            {
-                AddSafeEffect(__instance?.gameObject);
+            private static void AwakePostfix(Piece __instance) {
+                AddSafteyEffectsToPiece(__instance.gameObject);
             }
 
             /// <summary>
@@ -100,46 +96,48 @@ namespace SafetyStatus
             [HarmonyPostfix]
             [HarmonyPriority(Priority.Low)]
             [HarmonyPatch(nameof(Piece.SetCreator))]
-            private static void SetCreatorPostfix(Piece __instance)
-            {
-                AddSafeEffect(__instance?.gameObject);
+            private static void SetCreatorPostfix(Piece __instance) {
+                AddSafteyEffectsToPiece(__instance.gameObject);
             }
 
             /// <summary>
             ///     Scans components in children and add SafeEffect if PlayerBase effect area is found.
             /// </summary>
             /// <param name="gameObject"></param>
-            private static void AddSafeEffect(GameObject gameObject)
-            {
-                if (gameObject == null) { return; }
+            private static void AddSafteyEffectsToPiece(GameObject gameObject) {
+                if (!gameObject) { return; }
 
-                foreach (var effectArea in gameObject.GetComponentsInChildren<EffectArea>())
-                {
-                    if (effectArea.m_type == EffectArea.Type.PlayerBase)
-                    {
-                        effectArea.m_statusEffect = SafeEffectName;
-                        effectArea.m_statusEffectHash = SafeEffectHash;
-                    }
+                foreach (var effectArea in gameObject.GetComponentsInChildren<EffectArea>()) {
+                    AddSafetyEffects(effectArea);
+                }
+            }
+        }
+
+        private static void AddSafetyEffects(EffectArea effectArea) {
+            if (effectArea.m_type == EffectArea.Type.PlayerBase) {
+                effectArea.m_statusEffect = SafeEffectName;
+                effectArea.m_statusEffectHash = SafeEffectHash;
+
+                //add visible rings
+                if (!effectArea.GetComponent<SafetyCircle>()) {
+                    effectArea.gameObject.AddComponent<SafetyCircle>();
                 }
             }
         }
 
         [HarmonyPatch(typeof(Player))]
-        internal static class PlayerPatch
-        {
+        internal static class PlayerPatch {
             /// <summary>
             ///     Patch to check if the SafeStatusEffect should be removed.
             /// </summary>
             /// <param name="__instance"></param>
             [HarmonyPostfix]
             [HarmonyPatch(nameof(Player.UpdateEnvStatusEffects))]
-            private static void UpdateEnvStatusEffectsPostFix(Player __instance)
-            {
+            private static void UpdateEnvStatusEffectsPostFix(Player __instance) {
                 var inPlayerBase = EffectArea.IsPointInsideArea(__instance.transform.position, EffectArea.Type.PlayerBase, 1f);
                 var hasSafeEffect = __instance.m_seman.HaveStatusEffect(SafeEffectName);
 
-                if (hasSafeEffect && !inPlayerBase)
-                {
+                if (hasSafeEffect && !inPlayerBase) {
                     __instance.m_seman.RemoveStatusEffect(SafeEffectHash);
                 }
             }
@@ -149,12 +147,10 @@ namespace SafetyStatus
     /// <summary>
     /// Helper class for properly logging from static contexts.
     /// </summary>
-    internal static class Log
-    {
+    internal static class Log {
         internal static ManualLogSource _logSource;
 
-        internal static void Init(ManualLogSource logSource)
-        {
+        internal static void Init(ManualLogSource logSource) {
             _logSource = logSource;
         }
 
