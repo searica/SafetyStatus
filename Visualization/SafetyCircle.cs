@@ -34,8 +34,6 @@ namespace SafetyStatus.Visualization {
             return quadMesh;
         }
 
-
-
         private void Awake() {
 
             visualization = new GameObject("visualization");
@@ -45,14 +43,22 @@ namespace SafetyStatus.Visualization {
             // set up static bounds
             var bounds = new GameObject("bounds");
             bounds.transform.parent = visualization.transform;
-            bounds.transform.localPosition = Vector3.zero;
-            bounds.transform.localEulerAngles = new Vector3(90f, 0f, 0f);
+            bounds.transform.localPosition = new Vector3(0.0f, 1f, 0.0f);
+            //bounds.transform.localEulerAngles = new Vector3(0f, 0f, 0f);
 
-            var meshFilter = bounds.AddComponent<MeshFilter>();
-            meshFilter.sharedMesh = GetMesh();
+            var projector = bounds.AddComponent<Projector>();
+            projector.enabled = true;
+            projector.orthographic = true;
+            projector.orthographicSize = 1f;
+            projector.material = GetMaterial();
+            projector.nearClipPlane = 0.1f;
+            projector.farClipPlane = 20f;
 
-            var meshRenderer = bounds.AddComponent<MeshRenderer>();
-            meshRenderer.sharedMaterial = GetMaterial();
+            //var meshFilter = bounds.AddComponent<MeshFilter>();
+            //meshFilter.sharedMesh = GetMesh();
+
+            //var meshRenderer = bounds.AddComponent<MeshRenderer>();
+            //meshRenderer.sharedMaterial = GetMaterial();
 
             bounds.SetActive(true);
 
