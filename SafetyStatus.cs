@@ -17,7 +17,7 @@ namespace SafetyStatus
         internal const string Author = "Searica";
         public const string PluginName = "SafetyStatus";
         public const string PluginGUID = $"{Author}.Valheim.{PluginName}";
-        public const string PluginVersion = "1.0.0";
+        public const string PluginVersion = "1.0.1";
 
         internal static CustomStatusEffect SafeEffect;
         internal const string SafeEffectName = "SafeStatusEffect";
@@ -90,7 +90,12 @@ namespace SafetyStatus
             [HarmonyPatch(nameof(Piece.Awake))]
             private static void AwakePostfix(Piece __instance)
             {
-                AddSafeEffect(__instance?.gameObject);
+                if (!__instance)
+                {
+                    return;
+                }
+
+                AddSafeEffect(__instance.gameObject);
             }
 
             /// <summary>
@@ -102,7 +107,12 @@ namespace SafetyStatus
             [HarmonyPatch(nameof(Piece.SetCreator))]
             private static void SetCreatorPostfix(Piece __instance)
             {
-                AddSafeEffect(__instance?.gameObject);
+                if (!__instance)
+                {
+                    return;
+                }
+
+                AddSafeEffect(__instance.gameObject);
             }
 
             /// <summary>
@@ -136,7 +146,7 @@ namespace SafetyStatus
             private static void UpdateEnvStatusEffectsPostFix(Player __instance)
             {
                 var inPlayerBase = EffectArea.IsPointInsideArea(__instance.transform.position, EffectArea.Type.PlayerBase, 1f);
-                var hasSafeEffect = __instance.m_seman.HaveStatusEffect(SafeEffectName);
+                var hasSafeEffect = __instance.m_seman.HaveStatusEffect(SafeEffectHash);
 
                 if (hasSafeEffect && !inPlayerBase)
                 {
