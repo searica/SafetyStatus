@@ -11,12 +11,16 @@ None so far, tell me if you find any.
 Fully compatible with mods that add PlayerBase effects to existing pieces.
 
 ## Donations/Tips
- My mods will always be free to use but if you feel like saying thanks you can tip/donate.
+My mods will always be free to use but if you feel like saying thanks you can tip/donate.
 
-  [![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/searica)
+| My Ko-fi: | [![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/searica) |
+|-----------|---------------|
 
 ## Source Code
-Github: https://github.com/searica/SafetyStatus
+Source code is available on Github.
+
+| Github Repository: | <button style="font-size:20px"><img height="18" src="https://github.githubassets.com/favicons/favicon-dark.svg"></img><a href="https://github.com/searica/SafetyStatus"> SafetyStatus</button> |
+|-----------|---------------|
 
 ### Contributions
 If you would like to provide suggestions, make feature requests, or reports bugs and compatibility issues you can either open an issue on the Github repository or tag me (@searica) with a bug report on my discord [Searica's Mods](https://discord.gg/sFmGTBYN6n).
@@ -36,7 +40,8 @@ If you like this mod you might like some of my other ones.
 - [BuildRestrictionTweaksSync](https://valheim.thunderstore.io/package/Searica/BuildRestrictionTweaksSync/)
 
 #### Gameplay Mods
-- [FortifySkillsRedux](https://valheim.thunderstore.io/package/Searica/FortifySkillsRedux/)
+- [CameraTweaks](https://valheim.thunderstore.io/package/Searica/CameraTweaks/)
 - [DodgeShortcut](https://valheim.thunderstore.io/package/Searica/DodgeShortcut/)
+- [FortifySkillsRedux](https://valheim.thunderstore.io/package/Searica/FortifySkillsRedux/)
 - [ProjectileTweaks](https://github.com/searica/ProjectileTweaks/)
 - [SkilledCarryWeight](https://github.com/searica/SkilledCarryWeight/)
