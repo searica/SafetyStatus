@@ -35,13 +35,15 @@ This mod was inspired by Safe Zone by Koosemose.
 If you like this mod you might like some of my other ones.
 
 #### Building Mods
-- [More Vanilla Build Prefabs](https://valheim.thunderstore.io/package/Searica/More_Vanilla_Build_Prefabs/)
-- [Extra Snap Points Made Easy](https://valheim.thunderstore.io/package/Searica/Extra_Snap_Points_Made_Easy/)
-- [BuildRestrictionTweaksSync](https://valheim.thunderstore.io/package/Searica/BuildRestrictionTweaksSync/)
+- [More Vanilla Build Prefabs](https://thunderstore.io/c/valheim/p/Searica/More_Vanilla_Build_Prefabs/)
+- [Extra Snap Points Made Easy](https://thunderstore.io/c/valheim/p/Searica/Extra_Snap_Points_Made_Easy/)
+- [AdvancedTerrainModifiers](https://thunderstore.io/c/valheim/p/Searica/AdvancedTerrainModifiers/)
+- [BuildRestrictionTweaksSync](https://thunderstore.io/c/valheim/p/Searica/BuildRestrictionTweaksSync/)
+- [ToolTweaks](https://thunderstore.io/c/valheim/p/Searica/ToolTweaks/)
 
 #### Gameplay Mods
-- [CameraTweaks](https://valheim.thunderstore.io/package/Searica/CameraTweaks/)
-- [DodgeShortcut](https://valheim.thunderstore.io/package/Searica/DodgeShortcut/)
-- [FortifySkillsRedux](https://valheim.thunderstore.io/package/Searica/FortifySkillsRedux/)
-- [ProjectileTweaks](https://github.com/searica/ProjectileTweaks/)
-- [SkilledCarryWeight](https://github.com/searica/SkilledCarryWeight/)
+- [CameraTweaks](https://thunderstore.io/c/valheim/p/Searica/CameraTweaks/)
+- [DodgeShortcut](https://thunderstore.io/c/valheim/p/Searica/DodgeShortcut/)
+- [FortifySkillsRedux](https://thunderstore.io/c/valheim/p/Searica/FortifySkillsRedux/)
+- [ProjectileTweaks](https://thunderstore.io/c/valheim/p/Searica/ProjectileTweaks/)
+- [SkilledCarryWeight](https://thunderstore.io/c/valheim/p/Searica/SkilledCarryWeight/)
