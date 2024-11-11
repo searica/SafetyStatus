@@ -55,7 +55,7 @@ namespace SafetyStatus
             }
             finally
             {
-                PrefabManager.OnVanillaPrefabsAvailable -= AddStatusEffect;
+                PrefabManager.OnVanillaPrefabsAvailable -= AddCustomStatusEffect;
             }
         }
 
