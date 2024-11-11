@@ -76,6 +76,34 @@ namespace SafetyStatus
                     __instance.m_statusEffectHash = SafeEffectHash;
                 }
             }
+
+            /// <summary>
+            ///     SafetyStatus is also applied to non player creatures so when they die it tries to update 
+            ///     the status effect for them since they didn't leave, but they are not there any more.
+            ///     So remove any invalid items from list of items to update the status effect of the EffectArea for.
+            /// </summary>
+            /// <param name="__instance"></param>
+            /// <param name="deltaTime"></param>
+            [HarmonyPrefix]
+            [HarmonyPatch(nameof(EffectArea.CustomFixedUpdate))]
+            private static void CustomFixedUpdatePrefex(EffectArea __instance, float deltaTime)
+            {
+                if (!__instance)
+                {
+                    return;
+                }
+                __instance.m_collidedWithCharacter = __instance.m_collidedWithCharacter.Where(x => IsValidCollidedWithCharacter(x)).ToList();
+            }
+
+            private static bool IsValidCollidedWithCharacter(Character item)
+            {
+                if (!item || item.GetSEMan() == null || !item.GetSEMan().m_nview || !item.GetSEMan().m_nview.IsValid())
+                {
+                    return false;
+                }
+                return true;
+            }
+
         }
 
         [HarmonyPatch(typeof(Piece))]
