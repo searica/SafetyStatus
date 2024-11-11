@@ -31,13 +31,13 @@ namespace SafetyStatus
 
             Game.isModded = true;
 
-            PrefabManager.OnVanillaPrefabsAvailable += AddStatusEffect;
+            PrefabManager.OnVanillaPrefabsAvailable += AddCustomStatusEffect;
         }
 
         /// <summary>
         ///     Create and add the Safe status effect
         /// </summary>
-        private void AddStatusEffect()
+        private void AddCustomStatusEffect()
         {
             try
             {
