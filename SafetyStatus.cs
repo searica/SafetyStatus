@@ -1,5 +1,5 @@
 ﻿// Ignore Spelling: SafetyStatus Jotunn
-
+using System;
 using BepInEx;
 using BepInEx.Logging;
 using HarmonyLib;
@@ -7,6 +7,9 @@ using Jotunn.Entities;
 using Jotunn.Managers;
 using System.Reflection;
 using UnityEngine;
+using System.Linq;
+using SafetyStatus.Extensions;
+using System.Collections.Generic;
 
 namespace SafetyStatus
 {
@@ -17,7 +20,7 @@ namespace SafetyStatus
         internal const string Author = "Searica";
         public const string PluginName = "SafetyStatus";
         public const string PluginGUID = $"{Author}.Valheim.{PluginName}";
-        public const string PluginVersion = "1.2.0";
+        public const string PluginVersion = "1.2.1";
 
         internal static CustomStatusEffect SafeEffect;
         internal const string SafeEffectName = "SafeStatusEffect";
