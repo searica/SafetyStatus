@@ -50,8 +50,8 @@ namespace SafetyStatus
                 statusEffect.m_stopMessageType = MessageHud.MessageType.TopLeft;
                 statusEffect.m_stopMessage = "You feel less safe";
                 SafeEffect = new CustomStatusEffect(statusEffect, false);
-                ItemManager.Instance.AddStatusEffect(SafeEffect);
                 SafeEffectHash = SafeEffect.StatusEffect.NameHash();
+                ItemManager.Instance.AddStatusEffect(SafeEffect);
             }
             finally
             {
