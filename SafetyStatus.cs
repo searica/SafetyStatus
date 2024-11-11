@@ -121,7 +121,7 @@ namespace SafetyStatus
             /// <param name="gameObject"></param>
             private static void AddSafeEffect(GameObject gameObject)
             {
-                if (gameObject == null) { return; }
+                if (!gameObject) { return; }
 
                 foreach (var effectArea in gameObject.GetComponentsInChildren<EffectArea>())
                 {
