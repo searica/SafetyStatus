@@ -8,8 +8,7 @@ using Jotunn.Managers;
 using System.Reflection;
 using UnityEngine;
 using System.Linq;
-using SafetyStatus.Extensions;
-using System.Collections.Generic;
+
 
 namespace SafetyStatus
 {
@@ -20,7 +19,7 @@ namespace SafetyStatus
         internal const string Author = "Searica";
         public const string PluginName = "SafetyStatus";
         public const string PluginGUID = $"{Author}.Valheim.{PluginName}";
-        public const string PluginVersion = "1.2.1";
+        public const string PluginVersion = "1.2.2";
 
         internal static CustomStatusEffect SafeEffect;
         internal const string SafeEffectName = "SafeStatusEffect";

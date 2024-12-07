@@ -5,6 +5,14 @@
 			<th align="center">Notes</th>
 		</tr>
 		<tr>
+			<td align="center">1.2.2</td>
+			<td align="left">
+				<ul>
+					<li>Updated Jotunn.</li>
+				</ul>
+			</td>
+		</tr>
+		<tr>
 			<td align="center">1.2.1</td>
 			<td align="left">
 				<ul>
