@@ -1,12 +1,14 @@
-﻿// Ignore Spelling: SafetyStatus Jotunn
+// Ignore Spelling: SafetyStatus Jotunn
 using BepInEx;
 using BepInEx.Logging;
+using BepInEx.Configuration;
 using HarmonyLib;
 using Jotunn.Entities;
 using Jotunn.Managers;
 using System.Reflection;
 using UnityEngine;
 using System.Linq;
+using System.Collections.Generic;
 
 
 namespace SafetyStatus
@@ -20,19 +22,59 @@ namespace SafetyStatus
         public const string PluginGUID = $"{Author}.Valheim.{PluginName}";
         public const string PluginVersion = "1.2.2";
 
+        private ConfigEntry<string> tileColor;
+        private ConfigEntry<int> tileAlpha;
+        private ConfigEntry<KeyboardShortcut> keyBind;
+
         internal static CustomStatusEffect SafeEffect;
         internal const string SafeEffectName = "SafeStatusEffect";
         internal static int SafeEffectHash;
 
+        internal static SafetyStatus Instance { get; private set; }
+        internal static Dictionary<EffectArea, List<GameObject>> Visuals = new();
+        internal static bool VisualsOn = false;
+
+        static readonly List<Vector3> vertices = new();
+        static readonly List<int> triangles = new();
+        static readonly List<Vector2> uvs = new();
+
         public void Awake()
         {
+            Instance = this;
+
             Log.Init(Logger);
+
+            tileColor = Config.Bind("Appearance", "TileColor", "Green", "Set the color of the terrain mesh (color name or hex)");
+            tileAlpha = Config.Bind("Appearance", "TileAlpha", 50, new ConfigDescription("Set the transparency of the terrain mesh (0 = transparent, 100 = opaque).", new AcceptableValueRange<int>(0, 100)));
+            keyBind = Config.Bind("Keybind", "ToggleVisuals", new KeyboardShortcut(KeyCode.F7), "Keybind to toggle the visibility of the visual effect areas.");
 
             Harmony.CreateAndPatchAll(Assembly.GetExecutingAssembly(), harmonyInstanceId: PluginGUID);
 
             Game.isModded = true;
 
             PrefabManager.OnVanillaPrefabsAvailable += AddCustomStatusEffect;
+        }
+
+        public void Update()
+        {
+            if (keyBind.Value.IsDown())
+            {
+                VisualsOn = !VisualsOn;
+
+                foreach (var ea in Visuals.Keys)
+                {
+                    if (Visuals[ea].Count == 0)
+                    {
+                        VisualiseEffectArea(ea);
+                    }
+
+                    foreach (var go in Visuals[ea])
+                    {
+                        go.SetActive(VisualsOn);
+                    }
+                }
+
+            }
         }
 
         /// <summary>
@@ -60,6 +102,155 @@ namespace SafetyStatus
             }
         }
 
+        /// <summary>
+        ///     Generate the intial visual vertices
+        /// </summary>
+        void GenerateShape()
+        {
+            if (vertices.Count > 0) return;
+
+            int ringCount = 20;
+            int segments = 60;
+
+            vertices.Clear();
+            triangles.Clear();
+            uvs.Clear();
+
+            // Add centre vertex
+            vertices.Add(Vector3.zero);
+            uvs.Add(Vector2.zero);
+
+            for (int r = 1; r <= ringCount; r++)
+            {
+                float currentRadius = r / (float)ringCount;
+                for (int s = 0; s < segments; s++)
+                {
+                    float angle = (s / (float)segments) * Mathf.PI * 2f;
+                    float x = Mathf.Cos(angle) * currentRadius;
+                    float z = Mathf.Sin(angle) * currentRadius;
+                    vertices.Add(new Vector3(x, 0f, z));
+                    uvs.Add(new Vector2(x, z));
+                }
+            }
+
+            // Triangles
+            for (int r = 0; r < ringCount - 1; r++)
+            {
+                int start = 1 + r * segments;
+                int next = start + segments;
+
+                for (int s = 0; s < segments; s++)
+                {
+                    int curr = start + s;
+                    int nextSeg = start + (s + 1) % segments;
+                    int currNextRing = next + s;
+                    int nextNextRing = next + (s + 1) % segments;
+
+                    if (r == 0)
+                    {
+                        // Fan from centre
+                        triangles.Add(0);
+                        triangles.Add(nextSeg);
+                        triangles.Add(curr);
+                    }
+
+                    // Quads between rings (split into two triangles)
+                    triangles.Add(currNextRing);
+                    triangles.Add(curr);
+                    triangles.Add(nextSeg);
+
+                    triangles.Add(nextNextRing);
+                    triangles.Add(currNextRing);
+                    triangles.Add(nextSeg);
+                }
+            }
+        }
+
+        /// <summary>
+        ///     Apply the generated shape to each PlayerBase EffectArea
+        /// </summary>
+        internal void VisualiseEffectArea(EffectArea area)
+        {
+            GenerateShape();
+
+            float radius = area.GetRadius();
+            Vector3 centre = area.transform.position;
+
+            List<Vector3> verts = new(vertices.Count);
+            for (int i = 0; i < vertices.Count; i++)
+            {
+                Vector3 offset = vertices[i] * radius;
+                Vector3 pos = centre + offset;
+                float terrainY = ZoneSystem.instance.GetGroundHeight(pos);
+                verts.Add(new Vector3(pos.x, terrainY + 0.25f, pos.z));
+            }
+
+            GenerateMesh(verts, triangles, uvs, area);
+        }
+
+        internal void GenerateMesh(List<Vector3> verts, List<int> tris, List<Vector2> uvs, EffectArea area)
+        {
+            Mesh mesh = new Mesh
+            {
+                vertices = verts.ToArray(),
+                triangles = tris.ToArray(),
+                uv = uvs.ToArray()
+            };
+            mesh.RecalculateNormals();
+
+            GameObject tile = new GameObject("SafetyStatus_TerrainMesh");
+            tile.transform.SetParent(transform);
+            MeshFilter mf = tile.AddComponent<MeshFilter>();
+            mf.mesh = mesh;
+            MeshRenderer mr = tile.AddComponent<MeshRenderer>();
+
+            string colorInput = tileColor.Value.ToLower();
+            Color parsedColor = Color.green; // Default fallback
+
+            var colorProperty = typeof(Color).GetProperty(colorInput, System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static); //interpret color from config
+            if (colorProperty != null)
+            {
+                parsedColor = (Color)colorProperty.GetValue(null);
+            }
+            else if (ColorUtility.TryParseHtmlString(colorInput.StartsWith("#") ? colorInput : "#" + colorInput, out Color hexColor))
+            {
+                parsedColor = hexColor;
+            }
+
+            mr.material = new Material(Resources.FindObjectsOfTypeAll<Shader>().First(s => s.name == "UI/Unlit/Transparent")) { 
+                color = new Color(parsedColor.r, parsedColor.g, parsedColor.b, Mathf.Clamp(tileAlpha.Value / 100f, 0f, 1f)) 
+            };
+
+            Visuals[area].Add(tile);
+
+        }
+
+        /// <summary>
+        ///     Clear effectArea list and visuals when switching worlds
+        /// </summary>
+
+        [HarmonyPatch(typeof(ZoneSystem), nameof(ZoneSystem.Start))]
+        internal class ZoneSystemStartPatch
+        {
+            [HarmonyPostfix]
+            private static void ZoneSystemStartPostfix()
+            {
+
+                foreach (var effectArea in Visuals)
+                {
+                    foreach (var tile in effectArea.Value)
+                    {
+                        if (tile != null)
+                            GameObject.Destroy(tile);
+                    }
+                }
+
+                Visuals.Clear();
+
+                VisualsOn = false;
+            }
+        }
+
         [HarmonyPatch(typeof(EffectArea))]
         internal static class EffectAreaPatch
         {
@@ -75,6 +266,33 @@ namespace SafetyStatus
                 {
                     __instance.m_statusEffect = SafeEffectName;
                     __instance.m_statusEffectHash = SafeEffectHash;
+
+                    if (!Visuals.ContainsKey(__instance))
+                    {
+                        Visuals[__instance] = new List<GameObject>();
+
+                        if (Player.m_localPlayer != null && VisualsOn == true)
+                        {
+                            SafetyStatus.Instance?.VisualiseEffectArea(__instance);
+                        }
+                    }
+                }
+            }
+
+            [HarmonyPostfix]
+            [HarmonyPatch(nameof(EffectArea.OnDestroy))]
+            private static void OnDestroyPostfix(EffectArea __instance)
+            {
+                if (__instance.m_type == EffectArea.Type.PlayerBase)
+                {
+                    if (Visuals.ContainsKey(__instance))
+                    {
+                        foreach (var tile in Visuals[__instance])
+                        {
+                            GameObject.Destroy(tile);
+                        }
+                        Visuals.Remove(__instance);
+                    }
                 }
             }
 
@@ -116,8 +334,8 @@ namespace SafetyStatus
             /// <param name="__instance"></param>
             [HarmonyPostfix]
             [HarmonyPriority(Priority.Low)]
-            [HarmonyPatch(nameof(Piece.Awake))]
-            private static void AwakePostfix(Piece __instance)
+            [HarmonyPatch(nameof(Piece.OnPlaced))]
+            private static void OnPlacedPostfix(Piece __instance)
             {
                 if (!__instance)
                 {
@@ -125,6 +343,7 @@ namespace SafetyStatus
                 }
 
                 AddSafeEffect(__instance.gameObject);
+                AddVisual(__instance.gameObject);
             }
 
             /// <summary>
@@ -158,6 +377,23 @@ namespace SafetyStatus
                     {
                         effectArea.m_statusEffect = SafeEffectName;
                         effectArea.m_statusEffectHash = SafeEffectHash;
+                    }
+                }
+            }
+
+            private static void AddVisual(GameObject gameObject)
+            {
+                if (!gameObject) { return; }
+
+                foreach (var effectArea in gameObject.GetComponentsInChildren<EffectArea>())
+                {
+                    if (effectArea.m_type == EffectArea.Type.PlayerBase && Player.m_localPlayer != null)
+                    {
+                        if (!Visuals.ContainsKey(effectArea))
+                        {
+                            Visuals[effectArea] = new List<GameObject>();
+                        }
+
                     }
                 }
             }
