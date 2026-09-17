@@ -1,10 +1,10 @@
 ﻿{
   "name": "SafetyStatus",
   "description": "Adds a new status effect (Safe) that indicates if you are within range of a structure that prevents monsters from spawning (such as beds or other objects that have a PlayerBase effect). Useful if you're trying to spawn-proof your base.",
-  "version_number": "1.2.2",
+  "version_number": "1.3.0",
   "website_url": "https://discord.gg/sFmGTBYN6n",
   "dependencies": [
-    "denikson-BepInExPack_Valheim-5.4.2202",
-    "ValheimModding-Jotunn-2.22.0"
+    "denikson-BepInExPack_Valheim-5.4.2350",
+    "ValheimModding-Jotunn-2.30.0"
   ]
 }

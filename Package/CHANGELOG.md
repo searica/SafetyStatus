@@ -5,6 +5,14 @@
 			<th align="center">Notes</th>
 		</tr>
 		<tr>
+			<td align="center">1.3.0</td>
+			<td align="left">
+				<ul>
+					<li>Updated for Deep North release!</li>
+				</ul>
+			</td>
+		</tr>
+		<tr>
 			<td align="center">1.2.2</td>
 			<td align="left">
 				<ul>
