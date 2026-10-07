@@ -5,6 +5,30 @@
 			<th align="center">Notes</th>
 		</tr>
 		<tr>
+			<td align="center">1.3.3</td>
+			<td align="left">
+				<ul>
+					<li>Dev build to test out a possible fix for a rare network send error in multiplayer.</li>
+				</ul>
+			</td>
+		</tr>
+		<tr>
+			<td align="center">1.3.2</td>
+			<td align="left">
+				<ul>
+					<li>Reduced number of network requests in multiplayer.</li>
+				</ul>
+			</td>
+		</tr>
+		<tr>
+			<td align="center">1.3.1</td>
+			<td align="left">
+				<ul>
+					<li>Fixed status effect being applied to tamed creatures and exacerbating lag on servers.</li>
+				</ul>
+			</td>
+		</tr>
+		<tr>
 			<td align="center">1.3.0</td>
 			<td align="left">
 				<ul>

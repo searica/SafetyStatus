@@ -4,9 +4,9 @@ using BepInEx.Logging;
 using HarmonyLib;
 using Jotunn.Entities;
 using Jotunn.Managers;
+using System.Linq;
 using System.Reflection;
 using UnityEngine;
-using System.Linq;
 
 
 namespace SafetyStatus
@@ -18,7 +18,7 @@ namespace SafetyStatus
         internal const string Author = "Searica";
         public const string PluginName = "SafetyStatus";
         public const string PluginGUID = $"{Author}.Valheim.{PluginName}";
-        public const string PluginVersion = "1.3.0";
+        public const string PluginVersion = "1.3.3";
 
         internal static CustomStatusEffect SafeEffect;
         internal const string SafeEffectName = "SafeStatusEffect";
@@ -50,6 +50,7 @@ namespace SafetyStatus
                 statusEffect.m_startMessage = "You feel safer";
                 statusEffect.m_stopMessageType = MessageHud.MessageType.TopLeft;
                 statusEffect.m_stopMessage = "You feel less safe";
+                statusEffect.m_effectsOnlyOnPlayer = true;
                 SafeEffect = new CustomStatusEffect(statusEffect, false);
                 SafeEffectHash = SafeEffect.StatusEffect.NameHash();
                 ItemManager.Instance.AddStatusEffect(SafeEffect);
@@ -79,9 +80,11 @@ namespace SafetyStatus
             }
 
             /// <summary>
-            ///     SafetyStatus is also applied to non player creatures so when they die it tries to update 
-            ///     the status effect for them since they didn't leave, but they are not there any more.
-            ///     So remove any invalid items from list of items to update the status effect of the EffectArea for.
+            ///     SafetyStatus should only be applied to players but it appears to be applied to hens in some cases? Add a check
+            ///     before updating status effects on targets to remove any invalid targets that are not actually there anymore, such 
+            ///     as a dead player who never exited the collider and is not removed from the list of targets. This patch runs for all
+            ///     status effects though, which can be applied to targets other than players, so make sure to check and respect whether
+            ///     the status effect should only affect players in the `IsValidColliedWithCharacter` function.
             /// </summary>
             /// <param name="__instance"></param>
             /// <param name="deltaTime"></param>
@@ -93,15 +96,30 @@ namespace SafetyStatus
                 {
                     return;
                 }
-                __instance.m_collidedWithCharacter = __instance.m_collidedWithCharacter.Where(x => IsValidCollidedWithCharacter(x)).ToList();
+                __instance.m_collidedWithCharacter = __instance.m_collidedWithCharacter.Where(x => IsValidCollidedWithCharacter(x, __instance.m_playerOnly, __instance.m_statusEffectHash == SafeEffectHash)).ToList();
             }
 
-            private static bool IsValidCollidedWithCharacter(Character item)
+            /// <summary>
+            ///     Check if the collided character is a valid target for the status effect.
+            /// </summary>
+            /// <param name="character">Character to check.</param>
+            /// <param name="playerOnly">Whether status effect should only be applied to player.</param>
+            /// <param name="localPlayerOnly">Whether status effect should only be applied to a local player.</param>
+            /// <returns></returns>
+            private static bool IsValidCollidedWithCharacter(Character character, bool playerOnly, bool localPlayerOnly)
             {
-                if (!item || item.GetSEMan() == null || !item.GetSEMan().m_nview || !item.GetSEMan().m_nview.IsValid())
+                if (
+                    !character 
+                    || (playerOnly && !character.IsPlayer()) 
+                    || (localPlayerOnly && character != Player.m_localPlayer) 
+                    || character.GetSEMan() == null 
+                    || !character.GetSEMan().m_nview 
+                    || !character.GetSEMan().m_nview.IsValid()
+                )
                 {
                     return false;
                 }
+
                 return true;
             }
 
@@ -174,6 +192,11 @@ namespace SafetyStatus
             [HarmonyPatch(nameof(Player.UpdateEnvStatusEffects))]
             private static void UpdateEnvStatusEffectsPostFix(Player __instance)
             {
+                if (__instance != Player.m_localPlayer)
+                {
+                    return;
+                }
+
                 var inPlayerBase = EffectArea.IsPointInsideArea(__instance.transform.position, EffectArea.Type.PlayerBase, 1f);
                 var hasSafeEffect = __instance.m_seman.HaveStatusEffect(SafeEffectHash);
 
